@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum RoleUser {
+  koordinator
+  dosen
+  mahasiswa
+}
+
+model Users {
+  id        String      @id @default(uuid())
+  email     String   @unique @db.VarChar(255)
+  name      String   @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  role      RoleUser @default(mahasiswa)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auth_session Session[]
+
+  mahasiswa   Mahasiswa?
+  dosen       Dosen?
+  koordinator Koordinator?
+}
+
+model Bidang {
+  id        Int    @id @default(autoincrement())
+  nama      String @db.VarChar(255)
+  deskripsi String @db.Text
+
+  dosen   Dosen[]   @relation("BidangDosen")
+  topikTA TopikTA[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Mahasiswa {
+  id       Int    @id @default(autoincrement())
+  nim      String @unique @db.VarChar(20)
+  jurusan  String @db.VarChar(255)
+  angkatan Int
+  usersId  String    @unique
+  users    Users  @relation(fields: [usersId], references: [id])
+  isTA  Boolean @default(false)
+
+  pendaftaranTA PendaftaranTA?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Dosen {
+  id   Int    @id @default(autoincrement())
+  nidn String @unique @db.VarChar(20)
+
+  bidang  Bidang[]  @relation("BidangDosen")
+  topikTA TopikTA[] @relation("DosenPembimbing")
+  // Relasi ke Users
+  usersId String    @unique
+  users   Users     @relation(fields: [usersId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Koordinator {
+  id      Int    @id @default(autoincrement())
+  nidn    String @unique @db.VarChar(20)
+  usersId String    @unique
+  users   Users  @relation(fields: [usersId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TopikTA {
+  id        Int    @id @default(autoincrement())
+  judul     String @db.VarChar(255)
+  deskripsi String @db.Text
+  bidangId  Int
+  bidang    Bidang @relation(fields: [bidangId], references: [id])
+
+  dosen         Dosen[]        @relation("DosenPembimbing")
+  pendaftaranTA PendaftaranTA?
+}
+
+model PendaftaranTA {
+  id            Int       @id @default(autoincrement())
+  mahasiswaId   Int       @unique
+  mahasiswa     Mahasiswa @relation(fields: [mahasiswaId], references: [id])
+  topikTAId     Int       @unique
+  topikTA       TopikTA   @relation(fields: [topikTAId], references: [id])
+  tanggalDaftar DateTime  @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Session {
+  id            String @id
+  userId        String 
+  expiresAt DateTime  @default(now())
+  idleExpires   BigInt @default(0)
+
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
