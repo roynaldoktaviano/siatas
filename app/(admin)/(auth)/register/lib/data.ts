@@ -14,3 +14,14 @@ export async function getBidangTA(){
         return [];
     }
 }
+
+export async function getTopikTA (){
+    try {
+        const topikTA = await prisma.topikTA.findMany();
+
+        return topikTA;
+    } catch (error) {
+        console.log(error);
+        return [];
+    }
+}

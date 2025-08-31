@@ -10,12 +10,12 @@ export default function TugasAkhirPage() {
 
           {/* Pesan kalau data belum ada */}
           <p className="text-gray-500 text-center">
-            Data tugas akhir belum ada
+            Anda belum terdaftar sebagai peserta Tugas Akhir. Silakan klik tombol di bawah untuk mendaftar.
           </p>
 
           <a
             href="tugas-akhir/daftar"
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="px-4 py-2 bg-red-500 text-white rounded-sm hover:bg-red-700 transition-colors"
           >
             Daftar
           </a>

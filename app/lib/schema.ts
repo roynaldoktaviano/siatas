@@ -22,8 +22,8 @@ angkatan: z.string().nonempty("Angkatan wajib di isi").min(4, "Angkatan harus 4 
 });
 
 export const daftarTASchema = z.object({
-  nama: z.string().nonempty("Nama wajib di isi"),
-  nim: z.string().nonempty("NIM wajib di isi").min(10, "NIM harus 10 karakter").max(10, "NIM harus 10 karakter"),
-  bidang: z.string().nonempty("Bidang wajib di isi"),
-  judul: z.string().nonempty("Judul wajib di isi"),
+  nim: z.string()
+    .nonempty({ message: "NIM wajib di isi" })
+    .length(10, "NIM harus 10 karakter"),
+  topikTAId: z.coerce.number().int().positive({ message: "Topik TA wajib diisi" }),
 });

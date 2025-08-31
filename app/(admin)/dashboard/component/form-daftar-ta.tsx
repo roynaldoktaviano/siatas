@@ -1,89 +1,56 @@
 "use client"
 
-import React, { useState } from "react"
+import { ActionResult } from "@/app/type";
+import React, { useActionState, useState } from "react"
+import { useFormState } from "react-dom";
+import { addTugasAkhir } from "../tugas-akhir/lib/action";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircleIcon } from "lucide-react";
+
+const initialState : ActionResult = {
+  error: '',
+}
 
 export default function FormTugasAkhir({
   bidangTA,
-} : {
-  bidangTA: { id: number; nama: string; deskripsi: string }[]
+  topikTA
+}: {
+  bidangTA: { id: number; nama: string; deskripsi: string }[],
+  topikTA: { id: number; judul: string; bidangId: number }[]   // pastikan ada bidangId di topik
 }) {
-  const bidangOptions = [
-    {
-      value: "struktur",
-      label: "Struktur",
-      desc: "Perencanaan dan analisis bangunan agar kuat, stabil, dan aman.",
-      judul: [
-        "Analisis Kekuatan Beton Bertulang pada Gedung Bertingkat",
-        "Perancangan Jembatan Beton Prategang",
-        "Studi Optimasi Struktur Baja untuk Gudang Industri",
-      ],
-    },
-    {
-      value: "geoteknik",
-      label: "Geoteknik",
-      desc: "Kajian sifat tanah dan batuan sebagai dasar konstruksi.",
-      judul: [
-        "Studi Daya Dukung Tanah pada Fondasi Tiang Pancang",
-        "Analisis Stabilitas Lereng dengan Metode Limit Equilibrium",
-        "Perkuatan Tanah Menggunakan Geotekstil",
-      ],
-    },
-    {
-      value: "keairan",
-      label: "Keairan",
-      desc: "Pengelolaan air, irigasi, drainase, dan bangunan hidrolik.",
-      judul: [
-        "Perencanaan Sistem Drainase Perkotaan",
-        "Studi Efisiensi Saluran Irigasi",
-        "Analisis Kapasitas Bendung terhadap Debit Banjir",
-      ],
-    },
-    {
-      value: "transportasi",
-      label: "Transportasi",
-      desc: "Perencanaan dan pengelolaan sistem transportasi darat.",
-      judul: [
-        "Perencanaan Geometrik Jalan Raya",
-        "Studi Kinerja Persimpangan dengan Lampu Lalu Lintas",
-        "Analisis Kelayakan Transportasi Massal di Perkotaan",
-      ],
-    },
-    {
-      value: "manajemen",
-      label: "Manajemen Konstruksi",
-      desc: "Pengelolaan biaya, waktu, tenaga kerja, dan mutu proyek.",
-      judul: [
-        "Analisis Risiko pada Proyek Konstruksi Gedung",
-        "Studi Penjadwalan Proyek dengan Metode CPM dan PERT",
-        "Manajemen Biaya pada Proyek Infrastruktur Jalan",
-      ],
-    },
-  ]
 
-  const [selectedBidang, setSelectedBidang] = useState("")
-  const [judulOptions, setJudulOptions] = useState<string[]>([])
+  const [selectedBidang, setSelectedBidang] = useState<number | "">("")
+  const [judulOptions, setJudulOptions] = useState<{ id: number; judul: string }[]>([])
+  const [state, formAction] = useActionState(addTugasAkhir, initialState)
 
   const handleBidangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const bidang = e.target.value
-    setSelectedBidang(bidang)
+    const bidangId = parseInt(e.target.value)
+    setSelectedBidang(bidangId)
 
-    const bidangData = bidangOptions.find((b) => b.value === bidang)
-    if (bidangData) {
-      setJudulOptions(bidangData.judul ? [bidangData.label] : [])
-    } else {
-      setJudulOptions([])
-    }
+    // filter topik sesuai bidangId
+    const filteredTopik = topikTA.filter((t) => t.bidangId === bidangId)
+    setJudulOptions(filteredTopik)
   }
 
   return (
-    <div className="max-w-lg mx-auto p-6 bg-white rounded-xl shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-center">Form Pendaftaran Tugas Akhir</h2>
-
-      {/* Nama */}
-      <div className="mb-4">
+    <>
+      <h2 className="text-2xl font-bold mb-4">
+        Form Pendaftaran Tugas Akhir
+      </h2>
+      {state.error !== "" && (
+        <Alert variant="destructive">
+          <AlertCircleIcon className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{state.error}</AlertDescription>
+        </Alert>
+      )}
+     <form action={formAction}>
+       {/* Nama */}
+       <div className="mb-4">
         <label className="block text-gray-700 font-medium mb-2">Nama</label>
         <input
           type="text"
+          name="nama"
           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-500"
           placeholder="Masukkan nama lengkap"
         />
@@ -94,6 +61,7 @@ export default function FormTugasAkhir({
         <label className="block text-gray-700 font-medium mb-2">NIM</label>
         <input
           type="text"
+          name="nim"
           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-500"
           placeholder="Masukkan NIM"
         />
@@ -105,12 +73,13 @@ export default function FormTugasAkhir({
         <select
           onChange={handleBidangChange}
           value={selectedBidang}
+          name="bidang"
           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-500"
         >
           <option value="">-- Pilih Bidang --</option>
-          {bidangOptions.map((bidang) => (
-            <option key={bidang.value} value={bidang.value}>
-              {bidang.label} - {bidang.desc}
+          {bidangTA.map((bidang) => (
+            <option key={bidang.id} value={bidang.id}>
+              {bidang.nama} - {bidang.deskripsi}
             </option>
           ))}
         </select>
@@ -119,14 +88,14 @@ export default function FormTugasAkhir({
       {/* Judul Tugas Akhir */}
       {selectedBidang && (
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Judul Tugas Akhir</label>
-          <select
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-500"
-          >
+          <label className="block text-gray-700 font-medium mb-2">
+            Judul Tugas Akhir
+          </label>
+          <select name="judul" className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-500">
             <option value="">-- Pilih Judul --</option>
-            {judulOptions.map((judul, index) => (
-              <option key={index} value={judul}>
-                {judul}
+            {judulOptions.map((judul) => (
+              <option key={judul.id} value={judul.id}>
+                {judul.judul}
               </option>
             ))}
           </select>
@@ -134,9 +103,10 @@ export default function FormTugasAkhir({
       )}
 
       {/* Submit Button */}
-      <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+      <button type="submit" className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
         Daftar
       </button>
-    </div>
-  )
+     </form>
+    </>
+  );
 }
